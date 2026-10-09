@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sindh Vehicle Registration Plate Management System</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ajrak: {
+                            red: '#8B0000',
+                            darkred: '#5c0000',
+                            navy: '#0b1d3a',
+                            gold: '#d4af37',
+                            cream: '#fdfbf7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono-plate { font-family: 'JetBrains Mono', monospace; }
+        .tab-active { border-bottom: 4px solid #d4af37; color: #ffffff; font-weight: 800; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
+        /* Authentic Ajrak Geometric Pattern CSS Background */
+        .ajrak-bg {
+            background-color: #700000;
+            background-image: 
+                radial-gradient(#d4af37 15%, transparent 16%),
+                radial-gradient(#0b1d3a 15%, transparent 16%),
+                radial-gradient(rgba(255,255,255,0.4) 8%, transparent 9%),
+                radial-gradient(rgba(255,255,255,0.4) 8%, transparent 9%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px, 0 15px, 15px 0;
+        }
+
+        .ajrak-strip {
+            background-color: #8B0000;
+            background-image: repeating-linear-gradient(45deg, #0b1d3a 0, #0b1d3a 10px, #8B0000 10px, #8B0000 20px, #d4af37 20px, #d4af37 22px);
+        }
+
+        /* Metallic Sindh Registration Plate Graphic Styling */
+        .sindh-plate-graphic {
+            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+            border: 2.5px solid #1e293b;
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.25), 0 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+            border-radius: 6px;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .sindh-plate-graphic .ajrak-ribbon {
+            width: 100%;
+            height: 9px;
+            background-color: #8B0000;
+            background-image: 
+                radial-gradient(#ffffff 20%, transparent 20%),
+                radial-gradient(#d4af37 20%, transparent 20%);
+            background-size: 8px 8px;
+            background-position: 0 0, 4px 4px;
+            border-bottom: 1px solid #000;
+        }
+
+        .sindh-plate-graphic .plate-rivet {
+            width: 4px;
+            height: 4px;
+            background: #94a3b8;
+            border: 1px solid #475569;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        @media print {
+            header, .no-print { display: none !important; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col text-slate-800">
+
+    <header class="ajrak-bg text-white shadow-xl sticky top-0 z-30 no-print border-b-4 border-ajrak-gold">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-3 flex-wrap gap-2">
+                
+                <div class="flex items-center space-x-3">
+                    <!-- Government of Sindh Emblem -->
+                    <div class="bg-white p-1 rounded-full shadow-md border-2 border-ajrak-gold flex items-center justify-center w-12 h-12 shrink-0">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <circle cx="50" cy="50" r="46" fill="#006600" stroke="#d4af37" stroke-width="3"/>
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="3,2"/>
+                            <path d="M50 15 L53 25 L63 25 L55 31 L58 41 L50 35 L42 41 L45 31 L37 25 L47 25 Z" fill="#d4af37"/>
+                            <path d="M 30 68 Q 50 82 70 68 Q 50 76 30 68" fill="#ffffff"/>
+                            <text x="50" y="58" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle" font-family="sans-serif">SINDH</text>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 font-serif text-amber-100">
+                            GOVERNMENT OF SINDH
+                            <span class="text-xs font-semibold bg-emerald-700/80 text-emerald-200 px-2 py-0.5 rounded-md border border-emerald-400/40 flex items-center gap-1 font-sans">
+                                <i class="fa-solid fa-shield-halved text-emerald-300"></i> Excise & Taxation
+                            </span>
+                        </h1>
+                        <p class="text-xs text-amber-200/90 font-medium">Official Vehicle Registration Plate Management & Distribution System</p>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center space-x-2 sm:space-x-3 text-xs">
+                    <button id="file-sync-btn" onclick="setupLiveFileLogging()" class="bg-ajrak-navy hover:bg-slate-800 text-emerald-300 border border-emerald-500/50 px-3 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shadow" title="Connect a text file on PC to write every change live to disk">
+                        <i class="fa-solid fa-hard-drive text-emerald-400"></i> <span id="sync-status-text">Connect Disk Log</span>
+                    </button>
+
+                    <button onclick="openAdminPasswordModal()" class="bg-ajrak-navy hover:bg-slate-800 text-amber-300 border border-amber-500/40 px-3 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-key text-amber-400"></i> Admin Pass
+                    </button>
+
+                    <button onclick="openImportModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold transition flex items-center shadow border border-emerald-500/40">
+                        <i class="fa-solid fa-file-import mr-1.5"></i> Import CSV
+                    </button>
+                    <button onclick="exportCSVBackup()" class="bg-blue-700 hover:bg-blue-800 text-white px-3 py-2 rounded-lg font-bold transition flex items-center shadow border border-blue-500/40">
+                        <i class="fa-solid fa-download mr-1.5"></i> Backup
+                    </button>
+                    <button onclick="generateBulkDemoData()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-3 py-2 rounded-lg transition flex items-center shadow" title="Generates Multi-Vehicle Demo Data">
+                        <i class="fa-solid fa-bolt mr-1.5"></i> Demo Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex space-x-6 text-sm font-medium pt-2 overflow-x-auto">
+                <button id="tab-btn-inventory" onclick="switchTab('inventory')" class="pb-2.5 px-2 tab-active transition whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-boxes-stacked"></i> Inventory & Pickups
+                </button>
+                <button id="tab-btn-poster" onclick="switchTab('poster')" class="pb-2.5 px-2 text-amber-100/70 hover:text-white transition whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-bullhorn"></i> Announcement Poster Generator
+                </button>
+                <button id="tab-btn-analytics" onclick="switchTab('analytics')" class="pb-2.5 px-2 text-amber-100/70 hover:text-white transition whitespace-nowrap flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i> Analytics & Handover Audit
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Live Save Indicator Banner -->
+    <div id="save-status-bar" class="bg-slate-900 text-amber-200 text-[11px] font-bold py-1 px-4 text-center flex justify-center items-center gap-2 shadow-inner border-b border-ajrak-gold/30">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i> <span>All records auto-saved locally in Sindh Excise Database.</span>
+        <span id="disk-sync-badge" class="hidden bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-mono border border-emerald-500/30"><i class="fa-solid fa-floppy-disk mr-1"></i> Live Disk Sync Active</span>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <section id="tab-inventory" class="space-y-6">
+            
+            <!-- Summary Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <div class="bg-white rounded-xl shadow-xs p-3 border border-slate-200">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Plates</p>
+                    <h3 id="stat-total" class="text-xl font-extrabold text-slate-900 mt-0.5">0</h3>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-xs p-3 border border-slate-200 border-l-4 border-l-emerald-600">
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">In Office Stock</p>
+                    <h3 id="stat-in-office" class="text-xl font-extrabold text-emerald-700 mt-0.5">0</h3>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-xs p-3 border border-slate-200 border-l-4 border-l-indigo-600">
+                    <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Delivered</p>
+                    <h3 id="stat-picked-up" class="text-xl font-extrabold text-indigo-700 mt-0.5">0</h3>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-xs p-3 border border-slate-200 border-l-4 border-l-amber-500">
+                    <p class="text-[10px] font-bold text-amber-600 uppercase tracking-wider"><i class="fa-solid fa-motorcycle mr-1"></i> Bikes</p>
+                    <h3 id="stat-bikes-ready" class="text-xl font-extrabold text-amber-700 mt-0.5">0</h3>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-xs p-3 border border-slate-200 border-l-4 border-l-purple-600">
+                    <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider"><i class="fa-solid fa-bus mr-1"></i> Rickshaws</p>
+                    <h3 id="stat-three-wheelers-ready" class="text-xl font-extrabold text-purple-700 mt-0.5">0</h3>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-xs p-3 border border-slate-200 border-l-4 border-l-blue-600">
+                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-wider"><i class="fa-solid fa-car mr-1"></i> Cars</p>
+                    <h3 id="stat-cars-ready" class="text-xl font-extrabold text-blue-700 mt-0.5">0</h3>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
+                <div class="flex flex-col lg:flex-row gap-3 items-center justify-between">
+                    
+                    <!-- Search Input -->
+                    <div class="relative w-full lg:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                        <input type="text" id="search-input" onkeyup="renderInventoryTable()" placeholder="Search plate (e.g. BWU-503), owner, CNIC..." 
+                               class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-ajrak-red text-xs font-medium transition">
+                    </div>
+
+                    <!-- Status Filter & Bulk Actions -->
+                    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-between lg:justify-end">
+                        
+                        <button id="bulk-pickup-btn" onclick="openBulkHandoverModal()" disabled 
+                                class="bg-indigo-700 hover:bg-indigo-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-3 py-2.5 rounded-xl text-xs transition flex items-center shadow-xs">
+                            <i class="fa-solid fa-list-check mr-2"></i> Bulk Pickup (<span id="selected-count">0</span>)
+                        </button>
+
+                        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
+                            <button onclick="setStatusFilter('ALL')" id="filter-btn-ALL" class="px-3 py-1 rounded-lg bg-white shadow-xs text-ajrak-red font-bold">All</button>
+                            <button onclick="setStatusFilter('IN_OFFICE')" id="filter-btn-IN_OFFICE" class="px-3 py-1 rounded-lg text-slate-600">In Office</button>
+                            <button onclick="setStatusFilter('PICKED_UP')" id="filter-btn-PICKED_UP" class="px-3 py-1 rounded-lg text-slate-600">Picked Up</button>
+                        </div>
+
+                        <button onclick="openAddModal()" class="bg-ajrak-red hover:bg-red-800 text-white font-bold px-3 py-2.5 rounded-xl text-xs transition flex items-center shadow">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Add Plate Record
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vehicle Type Filter Pills -->
+                <div class="flex items-center space-x-2 pt-2 border-t border-slate-100 text-xs overflow-x-auto custom-scroll pb-1" id="vehicle-type-pills-container">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] whitespace-nowrap">Vehicle Filter:</span>
+                </div>
+
+                <!-- Series Prefix Quick Filter Pills -->
+                <div class="flex items-center space-x-2 pt-1 text-xs overflow-x-auto custom-scroll pb-1" id="series-pills-container">
+                    <span class="text-slate-400 font-bold uppercase text-[10px] whitespace-nowrap">Series Filter:</span>
+                </div>
+            </div>
+
+            <!-- Inventory Data Table -->
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs font-semibold text-slate-600">
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="w-4 h-4 text-ajrak-red rounded">
+                        <label for="select-all-checkbox" class="cursor-pointer">Select All Visible Plates</label>
+                    </div>
+                    <div id="table-showing-count" class="text-slate-500 font-medium">Showing 0 entries</div>
+                </div>
+
+                <div class="overflow-x-auto max-h-[600px] custom-scroll">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase z-10">
+                            <tr>
+                                <th class="py-3 px-4 w-10 text-center">#</th>
+                                <th class="py-3 px-4">Official Sindh Ajrak Plate</th>
+                                <th class="py-3 px-4">Category</th>
+                                <th class="py-3 px-4">Registered Owner</th>
+                                <th class="py-3 px-4 text-center">Status / Handover Action</th>
+                                <th class="py-3 px-4 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="empty-state" class="hidden text-center py-12 px-4">
+                    <i class="fa-solid fa-boxes-packing text-4xl text-slate-300 mb-3"></i>
+                    <p class="text-slate-500 font-medium">No Sindh registration plates found matching filter criteria.</p>
+                    <button onclick="generateBulkDemoData()" class="mt-2 text-xs text-ajrak-red font-bold hover:underline">Generate Demo Sindh Registration Plates</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-poster" class="space-y-6 hidden">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Poster Controls Panel -->
+                <div class="lg:col-span-4 bg-white p-5 rounded-xl shadow-xs border border-slate-200 space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <h3 class="font-bold text-slate-900 text-lg">Official Sindh Poster Generator</h3>
+                        <p class="text-xs text-slate-500">Creates official public notices with Ajrak branding for WhatsApp & social media.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Filter Announcement by Vehicle Category</label>
+                        <select id="poster-vehicle-scope" onchange="renderPosterPreview()" class="w-full bg-slate-50 border border-slate-300 rounded-lg text-xs p-2.5 font-bold">
+                            <option value="ALL">All Categories Combined</option>
+                            <option value="Motorbike">Motorbikes Only (🏍️)</option>
+                            <option value="Rickshaw">Rickshaws / Autos Only (🛺)</option>
+                            <option value="Loader">Loader Three-Wheelers Only (🚚)</option>
+                            <option value="Car">Cars / Light Vehicles Only (🚗)</option>
+                            <option value="Commercial">Commercial / Heavy Vehicles Only (🚛)</option>
+                            <option value="Tractor">Tractors / Agri Vehicles Only (🚜)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Graphic Display Layout</label>
+                        <select id="poster-mode-select" onchange="renderPosterPreview()" class="w-full bg-slate-50 border border-slate-300 rounded-lg text-xs p-2.5 font-bold">
+                            <option value="CATEGORIZED_RANGES">1. Categorized Series Ranges (Recommended)</option>
+                            <option value="COMPACT_MATRIX">2. Compact Sindh Plate Badge Matrix</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Stock Scope</label>
+                            <select id="poster-status-filter" onchange="renderPosterPreview()" class="w-full bg-slate-50 border border-slate-300 rounded-lg text-xs p-2">
+                                <option value="IN_OFFICE">In Office Stock Only</option>
+                                <option value="ALL">All Registered Records</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Series Prefix Filter</label>
+                            <select id="poster-series-filter" onchange="renderPosterPreview()" class="w-full bg-slate-50 border border-slate-300 rounded-lg text-xs p-2">
+                                <option value="ALL">All Series Prefixes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Department Header Text</label>
+                        <input type="text" id="poster-dept-input" oninput="updatePosterText()" value="EXCISE, TAXATION & NARCOTICS CONTROL DEPARTMENT • GOVERNMENT OF SINDH" 
+                               class="w-full bg-slate-50 border border-slate-300 rounded-lg text-xs p-2">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Notice Title</label>
+                        <input type="text" id="poster-title-input" oninput="updatePosterText()" value="PUBLIC NOTICE: NEW SINDH AJRAK NUMBER PLATES ARRIVED" 
+                               class="w-full bg-slate-50 border border-slate-300 rounded-lg text-xs p-2">
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-200 space-y-2">
+                        <button onclick="downloadPosterPNG()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-file-image mr-2 text-lg"></i> Download Sindh Notice Poster (PNG)
+                        </button>
+                        <button onclick="copyWhatsAppMessage()" class="w-full bg-emerald-100 text-emerald-900 hover:bg-emerald-200 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center text-xs">
+                            <i class="fa-brands fa-whatsapp mr-2 text-base text-emerald-700"></i> Copy WhatsApp Broadcast Text
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Poster Live Preview Card -->
+                <div class="lg:col-span-8 flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs text-slate-500 font-bold uppercase"><i class="fa-solid fa-eye mr-1"></i> Public Poster Preview</span>
+                        <span id="poster-pagination-indicator" class="text-xs font-bold text-ajrak-red bg-red-50 px-2.5 py-1 rounded-md border border-red-200">Official Format</span>
+                    </div>
+
+                    <!-- CANVASSABLE POSTER CARD WITH SINDH AJRAK BRANDING -->
+                    <div id="poster-card" class="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border-2 border-ajrak-gold">
+                        <div id="poster-banner" class="ajrak-bg text-white p-6 text-center border-b-4 border-ajrak-gold relative">
+                            <div class="flex items-center justify-center space-x-3 mb-2">
+                                <div class="bg-white p-1 rounded-full w-10 h-10 border border-ajrak-gold">
+                                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                                        <circle cx="50" cy="50" r="46" fill="#006600"/>
+                                        <text x="50" y="60" font-size="20" font-weight="bold" fill="#ffffff" text-anchor="middle">SINDH</text>
+                                    </svg>
+                                </div>
+                                <p id="poster-dept-display" class="font-bold text-[11px] uppercase tracking-widest text-amber-200">EXCISE, TAXATION & NARCOTICS CONTROL DEPARTMENT • GOVERNMENT OF SINDH</p>
+                            </div>
+                            <h2 id="poster-title-display" class="text-lg sm:text-xl font-black uppercase tracking-wide leading-tight text-white font-serif">
+                                PUBLIC NOTICE: NEW SINDH AJRAK NUMBER PLATES ARRIVED
+                            </h2>
+                            <div class="mt-2 inline-block bg-ajrak-gold text-slate-950 font-black text-[11px] px-3 py-0.5 rounded-full uppercase tracking-wider shadow">
+                                Ready for Collection at Registration Office
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-100 px-6 py-2 border-b border-slate-200 flex justify-between items-center text-xs text-slate-700 font-bold">
+                            <div><i class="fa-solid fa-calendar-day text-ajrak-red mr-1"></i> Date: <span id="poster-date-display"></span></div>
+                            <div id="poster-count-badge" class="bg-slate-200 text-slate-800 px-2.5 py-0.5 rounded text-[10px] font-extrabold">Total: 0 Plates</div>
+                        </div>
+
+                        <div class="p-5 min-h-[320px]">
+                            <div id="poster-render-content">
+                                <!-- Categorized series or matrix rendered dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-700">
+                            <p class="font-extrabold text-ajrak-red mb-1 flex items-center">
+                                <i class="fa-solid fa-triangle-exclamation mr-1.5 text-xs"></i> Mandatory Requirements for Handover:
+                            </p>
+                            <div class="grid grid-cols-2 gap-1 text-[10px] text-slate-600 font-semibold">
+                                <div>• Original CNIC Card</div>
+                                <div>• Vehicle Registration Book / Token Slip</div>
+                                <div>• Paid Tax Receipt Copy</div>
+                                <div>• Return Old Physical Number Plate</div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-slate-200 text-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                                District Excise & Taxation Office Sindh • Official Distribution
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="tab-analytics" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-xl shadow-xs border border-slate-200">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4"><i class="fa-solid fa-chart-pie mr-2 text-ajrak-red"></i> Stock Distribution Breakdown</h3>
+                    <div class="relative h-64 flex justify-center">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-xs border border-slate-200">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4"><i class="fa-solid fa-layer-group mr-2 text-emerald-600"></i> Category Breakdown</h3>
+                    <div class="relative h-64 flex justify-center">
+                        <canvas id="vehicleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 p-5">
+                <h3 class="text-xs font-bold text-slate-500 uppercase mb-4"><i class="fa-solid fa-clock-rotate-left mr-2 text-indigo-600"></i> Sindh Plate Handover Audit History Log</h3>
+                <div class="overflow-x-auto max-h-[400px] custom-scroll">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 text-slate-700 font-bold uppercase border-b border-slate-200 sticky top-0">
+                            <tr>
+                                <th class="p-3">Plate Plate Graphic</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Registered Owner</th>
+                                <th class="p-3">Collector Name</th>
+                                <th class="p-3">CNIC Number</th>
+                                <th class="p-3">Chassis / Receipt #</th>
+                                <th class="p-3">Verifications</th>
+                                <th class="p-3">Handover Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analytics-log-body" class="divide-y divide-slate-100">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: PICKUP / HANDOVER MODAL -->
+    <div id="handover-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div class="ajrak-bg text-white p-4 px-6 flex justify-between items-center border-b-2 border-ajrak-gold">
+                <h3 class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-box text-ajrak-gold"></i> 
+                    <span id="handover-modal-title">Record / Edit Handover</span>
+                </h3>
+                <button onclick="closeHandoverModal()" class="text-slate-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="confirmHandover(event)" class="p-6 space-y-4">
+                <input type="hidden" id="handover-plate-id">
+                
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Target Sindh Plate</p>
+                        <div id="modal-plate-graphic-container"></div>
+                    </div>
+                    <span id="modal-status-badge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-md border border-emerald-300">In Office</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Registered Owner Name *</label>
+                        <input type="text" id="handover-owner-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-bold text-slate-800">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Vehicle Category *</label>
+                        <select id="handover-vehicle-type" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-bold">
+                            <option value="Motorbike">Motorbike (🏍️)</option>
+                            <option value="Rickshaw">Rickshaw / Auto (🛺)</option>
+                            <option value="Loader">Loader Three-Wheeler (🚚)</option>
+                            <option value="Car">Car / Light Vehicle (🚗)</option>
+                            <option value="Commercial">Commercial / Heavy (🚛)</option>
+                            <option value="Tractor">Tractor / Agri (🚜)</option>
+                            <option value="Other">Other Category</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Collector / Recipient Name *</label>
+                    <input type="text" id="recipient-name" required placeholder="Person picking up plate" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs">
+                </div>
+
+                <!-- Pakistani CNIC Field -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-700">Recipient CNIC Number (13 Digits) *</label>
+                        <span class="text-[10px] font-bold text-slate-400">35202-XXXXXXX-X</span>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="recipient-cnic" required maxlength="15" 
+                               oninput="formatPakistaniCNIC(this)"
+                               placeholder="42101-1234567-1" 
+                               class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-mono font-bold tracking-wider text-slate-900">
+                        <i id="cnic-check-icon" class="fa-solid fa-circle-check absolute right-3 top-3 text-slate-300"></i>
+                    </div>
+                    <p id="cnic-error-msg" class="text-[10px] text-red-600 font-bold mt-1 hidden"><i class="fa-solid fa-triangle-exclamation"></i> Must be 13 digits (e.g. 42101-1234567-1)</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Engine / Chassis No. or Token Slip # (Optional)</label>
+                    <input type="text" id="handover-chassis-no" placeholder="e.g. CH-998234 / Slip # 441" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs">
+                </div>
+
+                <!-- MANDATORY VERIFICATION CHECKBOXES -->
+                <div class="bg-amber-50/90 border border-amber-200 p-3.5 rounded-xl space-y-2">
+                    <p class="text-xs font-extrabold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-amber-700"></i> Mandatory Verifications Before Handover:
+                    </p>
+
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="chk-file-checked" required class="w-4 h-4 text-ajrak-red rounded">
+                        <span>1. Registration Book / Token Slip Checked</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="chk-old-plate-received" required class="w-4 h-4 text-ajrak-red rounded">
+                        <span>2. Old Registration Plate Received from Owner</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="chk-cnic-verified" required class="w-4 h-4 text-ajrak-red rounded">
+                        <span>3. Original CNIC Details Verified</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                    <button type="button" id="revert-to-office-btn" onclick="revertPlateToOffice()" class="hidden px-3 py-2 bg-red-100 text-red-700 font-bold rounded-lg text-xs hover:bg-red-200">
+                        <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Revert to Stock
+                    </button>
+                    <div class="flex space-x-2 ml-auto">
+                        <button type="button" onclick="closeHandoverModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs">Cancel</button>
+                        <button type="submit" class="px-5 py-2 bg-ajrak-red hover:bg-red-800 text-white font-bold rounded-lg text-xs shadow-md">Save Pickup Record</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADMIN PASSWORD -->
+    <div id="password-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white p-4 px-6 flex justify-between items-center border-b border-amber-500/30">
+                <h3 class="font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-amber-400"></i> Admin Authorization
+                </h3>
+                <button onclick="closePasswordModal()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="verifyAdminPassword(event)" class="p-6 space-y-4">
+                <p class="text-xs text-slate-600">Delivered record is locked. Enter Admin password to edit.</p>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Admin Password</label>
+                    <input type="password" id="admin-pass-input" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                    <p class="text-[10px] text-slate-400 mt-1 font-semibold">Default Pass: <span class="font-mono text-amber-700 font-bold" id="default-pass-hint">1234</span></p>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 text-white font-bold rounded-lg text-xs shadow-md">Unlock Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CHANGE ADMIN PASSWORD -->
+    <div id="change-pass-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+            <div class="bg-slate-900 text-white p-4 px-6 flex justify-between items-center">
+                <h3 class="font-bold text-sm"><i class="fa-solid fa-key text-amber-400 mr-2"></i> Set Admin Password</h3>
+                <button onclick="closeAdminPasswordModal()" class="text-slate-300 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveAdminPassword(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">New Password</label>
+                    <input type="password" id="new-pass-input" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeAdminPasswordModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-slate-900 text-white font-bold rounded-lg text-xs shadow-md">Save Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: BULK HANDOVER MODAL -->
+    <div id="bulk-handover-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="ajrak-bg text-white p-4 px-6 flex justify-between items-center border-b-2 border-ajrak-gold">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-list-check mr-2"></i> Bulk Pickup Handover</h3>
+                <button onclick="closeBulkHandoverModal()" class="text-slate-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="confirmBulkHandover(event)" class="p-6 space-y-4">
+                <div class="bg-red-50 p-3 rounded-xl border border-red-200 text-xs">
+                    <span class="font-bold text-ajrak-red">Marking <span id="bulk-modal-count" class="font-black text-slate-900">0</span> selected plates as Picked Up!</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Collector Name *</label>
+                    <input type="text" id="bulk-recipient-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Collector CNIC *</label>
+                    <input type="text" id="bulk-recipient-cnic" required maxlength="15" oninput="formatPakistaniCNIC(this)" placeholder="42101-1234567-1" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-mono font-bold">
+                </div>
+
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-2">
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                        <input type="checkbox" id="bulk-chk-all" required class="w-4 h-4 text-ajrak-red rounded">
+                        <span>Verified Registration Books, Old Plates & CNICs for all selected items</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeBulkHandoverModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-ajrak-red hover:bg-red-800 text-white font-bold rounded-lg text-xs shadow-md">Complete Bulk Handover</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CSV IMPORT MODAL -->
+    <div id="import-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div class="ajrak-bg text-white p-4 px-6 flex justify-between items-center border-b-2 border-ajrak-gold">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-file-csv mr-2"></i> Import Bulk CSV File</h3>
+                <button onclick="closeImportModal()" class="text-slate-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-600">Import Sindh vehicle registration plate records with auto-category detection.</p>
+                <div class="border-2 border-dashed border-slate-300 hover:border-ajrak-red rounded-xl p-6 text-center cursor-pointer transition bg-slate-50 relative">
+                    <input type="file" id="csv-file-input" accept=".csv" onchange="handleCSVFileSelect(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-ajrak-red mb-2"></i>
+                    <p class="text-sm font-bold text-slate-700" id="file-chosen-text">Click or drop CSV file here</p>
+                </div>
+                <div class="flex items-center justify-between pt-2 border-t border-slate-200">
+                    <button onclick="downloadCSVTemplate()" class="text-xs text-ajrak-red hover:underline font-bold flex items-center">
+                        <i class="fa-solid fa-download mr-1"></i> Download Template CSV
+                    </button>
+                    <button onclick="closeImportModal()" class="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD SINGLE PLATE -->
+    <div id="add-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div class="ajrak-bg text-white p-4 px-6 flex justify-between items-center border-b-2 border-ajrak-gold">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-plus-circle mr-2"></i> Add Sindh Plate Record</h3>
+                <button onclick="closeAddModal()" class="text-slate-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveSinglePlate(event)" class="p-6 space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Plate Number *</label>
+                    <input type="text" id="add-plate-number" oninput="autoSelectCategoryFromPlate(this.value)" required placeholder="e.g. BWU-503 or KHI-M-1050" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-bold uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Vehicle Category *</label>
+                    <select id="add-vehicle-type" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs font-bold">
+                        <option value="Motorbike">Motorbike (🏍️)</option>
+                        <option value="Rickshaw">Rickshaw / Auto (🛺)</option>
+                        <option value="Loader">Loader Three-Wheeler (🚚)</option>
+                        <option value="Car">Car / Light Vehicle (🚗)</option>
+                        <option value="Commercial">Commercial / Heavy Vehicle (🚛)</option>
+                        <option value="Tractor">Tractor / Agri Vehicle (🚜)</option>
+                        <option value="Other">Other Category</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Owner Name *</label>
+                    <input type="text" id="add-owner-name" required placeholder="e.g. Shahzaib Soomro" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
+                    <input type="text" id="add-owner-phone" placeholder="0300-1234567" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs">
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-ajrak-red hover:bg-red-800 text-white font-bold rounded-lg text-xs shadow-md">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Core System State
+        let platesData = [];
+        let selectedPlateIds = new Set();
+        let currentStatusFilter = 'ALL';
+        let currentVehicleFilter = 'ALL';
+        let currentSeriesFilter = 'ALL';
+
+        let statusChartInstance = null;
+        let vehicleChartInstance = null;
+        let pendingUnlockedPlateId = null;
+
+        let adminPassword = localStorage.getItem('plate_admin_pass') || '1234';
+        let fileHandle = null;
+
+        const STORAGE_KEY = 'sindh_ajrak_plate_track_v5';
+
+        // Vehicle Category Configuration
+        const VEHICLE_CONFIG = {
+            'Motorbike': { icon: 'fa-motorcycle', label: 'Motorbike', color: 'bg-amber-100 text-amber-900 border-amber-300', emoji: '🏍️' },
+            'Rickshaw': { icon: 'fa-bus', label: 'Rickshaw / Auto', color: 'bg-purple-100 text-purple-900 border-purple-300', emoji: '🛺' },
+            'Loader': { icon: 'fa-truck-pickup', label: 'Loader 3-Wheeler', color: 'bg-orange-100 text-orange-900 border-orange-300', emoji: '🚚' },
+            'Car': { icon: 'fa-car', label: 'Car / Light', color: 'bg-blue-100 text-blue-900 border-blue-300', emoji: '🚗' },
+            'Commercial': { icon: 'fa-truck', label: 'Commercial / Heavy', color: 'bg-slate-200 text-slate-900 border-slate-400', emoji: '🚛' },
+            'Tractor': { icon: 'fa-tractor', label: 'Tractor / Agri', color: 'bg-emerald-100 text-emerald-900 border-emerald-300', emoji: '🚜' },
+            'Other': { icon: 'fa-cube', label: 'Other', color: 'bg-slate-100 text-slate-700 border-slate-300', emoji: '📦' }
+        };
+
+        window.onload = function() {
+            document.getElementById('default-pass-hint').innerText = adminPassword;
+            loadStoredData();
+            document.getElementById('poster-date-display').innerText = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            renderInventoryTable();
+            updateStats();
+            initCharts();
+        };
+
+        // Helper to generate realistic Sindh Ajrak Graphic Plate HTML
+        function generateSindhPlateGraphicHTML(plateNumber, scale = 'md') {
+            const parts = plateNumber.split('-');
+            let codeStr = plateNumber;
+            let numStr = "";
+
+            if (parts.length >= 2) {
+                codeStr = parts[0];
+                numStr = parts.slice(1).join('-');
+            }
+
+            let widthClass = "w-36 h-12";
+            let fontSize = "text-xs";
+            let emblemSize = "w-3.5 h-3.5";
+            let sindhTextSize = "text-[7px]";
+
+            if (scale === 'sm') {
+                widthClass = "w-28 h-9";
+                fontSize = "text-[10px]";
+                emblemSize = "w-2.5 h-2.5";
+                sindhTextSize = "text-[6px]";
+            } else if (scale === 'lg') {
+                widthClass = "w-48 h-16";
+                fontSize = "text-base";
+                emblemSize = "w-5 h-5";
+                sindhTextSize = "text-[9px]";
+            }
+
+            return `
+                <div class="sindh-plate-graphic ${widthClass}">
+                    <div class="plate-rivet top-0.5 left-1"></div>
+                    <div class="plate-rivet top-0.5 right-1"></div>
+                    
+                    <div class="ajrak-ribbon"></div>
+                    
+                    <div class="flex items-center justify-center space-x-1.5 px-2 my-auto w-full">
+                        <span class="font-mono-plate font-black text-slate-950 ${fontSize} tracking-tighter">${codeStr}</span>
+                        <div class="${emblemSize} rounded-full bg-emerald-800 border border-amber-400 flex items-center justify-center shrink-0">
+                            <span class="text-[5px] text-white font-bold">★</span>
+                        </div>
+                        <span class="font-mono-plate font-black text-slate-950 ${fontSize} tracking-tighter">${numStr || '---'}</span>
+                    </div>
+
+                    <div class="w-full text-center pb-0.5 border-t border-slate-200 bg-slate-50/80">
+                        <span class="font-black tracking-widest text-emerald-900 ${sindhTextSize} uppercase font-sans">SINDH</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Local Storage & Persistence
+        function loadStoredData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                try { platesData = JSON.parse(raw); } catch(e) { platesData = []; }
+            } else {
+                generateBulkDemoData(false);
+            }
+        }
+
+        function saveData(actionLogText = null) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(platesData));
+            updateStats();
+            renderInventoryTable();
+            updateCharts();
+            populateSeriesFilters();
+
+            const bar = document.getElementById('save-status-bar');
+            bar.classList.add('bg-emerald-900');
+            setTimeout(() => bar.classList.remove('bg-emerald-900'), 400);
+
+            if(actionLogText && fileHandle) {
+                appendLiveDiskLog(actionLogText);
+            }
+        }
+
+        // Live Disk File Logging
+        async function setupLiveFileLogging() {
+            if ('showSaveFilePicker' in window) {
+                try {
+                    fileHandle = await window.showSaveFilePicker({
+                        suggestedName: 'sindh_plates_log.txt',
+                        types: [{ description: 'Text Log File', accept: { 'text/plain': ['.txt'] } }]
+                    });
+                    document.getElementById('sync-status-text').innerText = 'Disk Log Active';
+                    document.getElementById('file-sync-btn').className = 'bg-emerald-900 text-emerald-200 border border-emerald-400 px-3 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shadow';
+                    document.getElementById('disk-sync-badge').classList.remove('hidden');
+                    showToast("Connected to live disk log! All operations will append to disk.", "success");
+                    appendLiveDiskLog(`--- SINDH EXCISE LOG SESSION STARTED AT ${new Date().toLocaleString()} ---`);
+                } catch (err) {
+                    showToast("File connection canceled.", "warning");
+                }
+            } else {
+                showToast("Direct disk writing supported on Chrome/Edge/Brave desktop browsers.", "info");
+            }
+        }
+
+        async function appendLiveDiskLog(textLine) {
+            if (!fileHandle) return;
+            try {
+                const writable = await fileHandle.createWritable({ keepExistingData: true });
+                const file = await fileHandle.getFile();
+                const existingText = await file.text();
+                await writable.write(existingText + `\n[${new Date().toLocaleString()}] ${textLine}`);
+                await writable.close();
+            } catch (err) {
+                console.error("Disk write error:", err);
+            }
+        }
+
+        // Auto-Category Classifier
+        function detectVehicleCategory(plateStr) {
+            const p = plateStr.toUpperCase();
+            if (p.includes('-M-') || p.startsWith('KHI-M') || p.includes('MC') || p.startsWith('BIKE')) return 'Motorbike';
+            if (p.startsWith('RKP') || p.includes('-RK-') || p.includes('AUTO') || p.includes('RIC')) return 'Rickshaw';
+            if (p.startsWith('LDR') || p.includes('LOADER') || p.includes('-LD-')) return 'Loader';
+            if (p.startsWith('TRK') || p.includes('COMM') || p.includes('TRUCK')) return 'Commercial';
+            if (p.startsWith('TCT') || p.includes('TRACTOR')) return 'Tractor';
+            return 'Car';
+        }
+
+        function autoSelectCategoryFromPlate(val) {
+            const cat = detectVehicleCategory(val);
+            document.getElementById('add-vehicle-type').value = cat;
+        }
+
+        // CNIC Formatter
+        function formatPakistaniCNIC(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (value.length > 13) value = value.substring(0, 13);
+
+            let formatted = '';
+            if (value.length > 0) {
+                formatted = value.substring(0, 5);
+                if (value.length > 5) {
+                    formatted += '-' + value.substring(5, 12);
+                    if (value.length > 12) {
+                        formatted += '-' + value.substring(12, 13);
+                    }
+                }
+            }
+
+            input.value = formatted;
+
+            const icon = document.getElementById('cnic-check-icon');
+            const err = document.getElementById('cnic-error-msg');
+
+            if (value.length === 13) {
+                if(icon) icon.className = 'fa-solid fa-circle-check absolute right-3 top-3 text-emerald-600 text-base';
+                if(err) err.classList.add('hidden');
+            } else {
+                if(icon) icon.className = 'fa-solid fa-circle-exclamation absolute right-3 top-3 text-amber-500 text-base';
+                if(err) err.classList.remove('hidden');
+            }
+        }
+
+        function handlePlateClick(id) {
+            const plate = platesData.find(p => p.id === id);
+            if (!plate) return;
+
+            if (plate.status === 'PICKED_UP') {
+                pendingUnlockedPlateId = id;
+                document.getElementById('admin-pass-input').value = '';
+                document.getElementById('password-modal').classList.remove('hidden');
+            } else {
+                openPickupModalForPlate(id);
+            }
+        }
+
+        function verifyAdminPassword(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === adminPassword) {
+                closePasswordModal();
+                openPickupModalForPlate(pendingUnlockedPlateId);
+                showToast("Record unlocked with Admin access", "success");
+            } else {
+                showToast("Incorrect Admin Password!", "warning");
+            }
+        }
+
+        function closePasswordModal() { document.getElementById('password-modal').classList.add('hidden'); }
+        function openAdminPasswordModal() { document.getElementById('change-pass-modal').classList.remove('hidden'); }
+        function closeAdminPasswordModal() { document.getElementById('change-pass-modal').classList.add('hidden'); }
+
+        function saveAdminPassword(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('new-pass-input').value.trim();
+            if (newPass) {
+                adminPassword = newPass;
+                localStorage.setItem('plate_admin_pass', newPass);
+                document.getElementById('default-pass-hint').innerText = newPass;
+                closeAdminPasswordModal();
+                showToast("Admin password updated successfully!", "success");
+            }
+        }
+
+        function openPickupModalForPlate(id) {
+            const plate = platesData.find(p => p.id === id);
+            if (!plate) return;
+
+            document.getElementById('handover-plate-id').value = plate.id;
+            document.getElementById('modal-plate-graphic-container').innerHTML = generateSindhPlateGraphicHTML(plate.plateNumber, 'lg');
+            document.getElementById('handover-owner-name').value = plate.ownerName;
+            document.getElementById('handover-vehicle-type').value = plate.vehicleType || detectVehicleCategory(plate.plateNumber);
+
+            const isAlreadyPicked = plate.status === 'PICKED_UP';
+            document.getElementById('handover-modal-title').innerText = isAlreadyPicked ? 'Edit Sindh Plate Handover Record' : 'Record Sindh Plate Handover';
+
+            const badge = document.getElementById('modal-status-badge');
+            if (isAlreadyPicked) {
+                badge.innerText = 'Picked Up';
+                badge.className = 'bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-md border border-indigo-300';
+                document.getElementById('revert-to-office-btn').classList.remove('hidden');
+            } else {
+                badge.innerText = 'In Office Stock';
+                badge.className = 'bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-md border border-emerald-300';
+                document.getElementById('revert-to-office-btn').classList.add('hidden');
+            }
+
+            document.getElementById('recipient-name').value = plate.handover ? plate.handover.recipientName : plate.ownerName;
+            
+            const cnicInput = document.getElementById('recipient-cnic');
+            cnicInput.value = plate.handover ? plate.handover.recipientCnic : '';
+            formatPakistaniCNIC(cnicInput);
+
+            document.getElementById('handover-chassis-no').value = plate.handover ? (plate.handover.chassisNo || '') : '';
+
+            document.getElementById('chk-file-checked').checked = isAlreadyPicked;
+            document.getElementById('chk-old-plate-received').checked = isAlreadyPicked;
+            document.getElementById('chk-cnic-verified').checked = isAlreadyPicked;
+
+            document.getElementById('handover-modal').classList.remove('hidden');
+        }
+
+        function confirmHandover(e) {
+            e.preventDefault();
+            const cnicVal = document.getElementById('recipient-cnic').value.replace(/[^0-9]/g, '');
+            if (cnicVal.length !== 13) {
+                showToast("Error: CNIC must be exactly 13 digits!", "warning");
+                return;
+            }
+
+            const id = document.getElementById('handover-plate-id').value;
+            const plate = platesData.find(p => p.id === id);
+            if (plate) {
+                plate.ownerName = document.getElementById('handover-owner-name').value.trim();
+                plate.vehicleType = document.getElementById('handover-vehicle-type').value;
+                plate.status = 'PICKED_UP';
+                plate.handover = {
+                    recipientName: document.getElementById('recipient-name').value.trim(),
+                    recipientCnic: document.getElementById('recipient-cnic').value,
+                    chassisNo: document.getElementById('handover-chassis-no').value.trim(),
+                    timestamp: new Date().toLocaleString(),
+                    verifications: ['File Checked', 'Old Plate Received', 'CNIC Verified']
+                };
+
+                saveData(`SINDH_HANDOVER: [${plate.vehicleType}] Plate ${plate.plateNumber} collected by ${plate.handover.recipientName} (CNIC: ${plate.handover.recipientCnic})`);
+                closeHandoverModal();
+                showToast(`Handover saved for Sindh Plate ${plate.plateNumber}`, 'success');
+            }
+        }
+
+        function revertPlateToOffice() {
+            const id = document.getElementById('handover-plate-id').value;
+            const plate = platesData.find(p => p.id === id);
+            if (plate && confirm(`Revert plate ${plate.plateNumber} back to In Office stock?`)) {
+                plate.status = 'IN_OFFICE';
+                plate.handover = null;
+                saveData(`REVERT_STOCK: Sindh Plate ${plate.plateNumber} returned to stock`);
+                closeHandoverModal();
+                showToast(`Plate ${plate.plateNumber} returned to stock`, 'info');
+            }
+        }
+
+        function closeHandoverModal() { document.getElementById('handover-modal').classList.add('hidden'); }
+
+        // Multi-Vehicle Sindh Demo Data Generator
+        function generateBulkDemoData(showNotice = true) {
+            const today = new Date().toISOString().split('T')[0];
+            const sampleData = [];
+            
+            const groups = [
+                { prefix: 'BWU-', count: 120, type: 'Car' },
+                { prefix: 'KHI-M-24-', count: 100, type: 'Motorbike' },
+                { prefix: 'RKP-24-', count: 50, type: 'Rickshaw' },
+                { prefix: 'LDR-24-', count: 35, type: 'Loader' },
+                { prefix: 'TRK-23-', count: 20, type: 'Commercial' },
+                { prefix: 'TCT-24-', count: 15, type: 'Tractor' }
+            ];
+
+            let idCounter = 1;
+
+            groups.forEach(group => {
+                const startNum = 501;
+                for(let i = 0; i < group.count; i++) {
+                    const plateNum = `${group.prefix}${startNum + i}`;
+                    const isPickedUp = (i % 6 === 0);
+                    sampleData.push({
+                        id: 'sindh_demo_' + (idCounter++),
+                        plateNumber: plateNum,
+                        seriesPrefix: group.prefix,
+                        ownerName: `Sindh Owner ${idCounter}`,
+                        vehicleType: group.type,
+                        phone: `0300-${Math.floor(1000000 + Math.random() * 9000000)}`,
+                        arrivalDate: today,
+                        status: isPickedUp ? 'PICKED_UP' : 'IN_OFFICE',
+                        handover: isPickedUp ? { 
+                            recipientName: `Sindh Owner ${idCounter}`, 
+                            recipientCnic: '42101-1234567-1', 
+                            chassisNo: `CH-${Math.floor(100000 + Math.random() * 900000)}`,
+                            timestamp: today, 
+                            verifications: ['File Checked', 'Old Plate Received', 'CNIC Verified']
+                        } : null
+                    });
+                }
+            });
+
+            platesData = sampleData;
+            selectedPlateIds.clear();
+            saveData("GENERATED_SINDH_DEMO_DATA: Loaded multi-category Sindh plates");
+            if(showNotice) showToast("Loaded official Sindh multi-vehicle plates demo data!", "info");
+        }
+
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventory-table-body');
+            const emptyState = document.getElementById('empty-state');
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+
+            tbody.innerHTML = '';
+
+            const filtered = platesData.filter(item => {
+                const itemType = item.vehicleType || detectVehicleCategory(item.plateNumber);
+                const matchesStatus = currentStatusFilter === 'ALL' || item.status === currentStatusFilter;
+                const matchesVehicle = currentVehicleFilter === 'ALL' || itemType === currentVehicleFilter;
+                const matchesSeries = currentSeriesFilter === 'ALL' || (item.seriesPrefix && item.seriesPrefix === currentSeriesFilter);
+                
+                const matchesSearch = item.plateNumber.toLowerCase().includes(searchVal) ||
+                                      item.ownerName.toLowerCase().includes(searchVal) ||
+                                      (item.handover && item.handover.recipientCnic && item.handover.recipientCnic.includes(searchVal)) ||
+                                      itemType.toLowerCase().includes(searchVal);
+
+                return matchesStatus && matchesVehicle && matchesSeries && matchesSearch;
+            });
+
+            document.getElementById('table-showing-count').innerText = `Showing ${filtered.length} of ${platesData.length} entries`;
+
+            if(filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+                const isInOffice = item.status === 'IN_OFFICE';
+                const isChecked = selectedPlateIds.has(item.id);
+                const vType = item.vehicleType || detectVehicleCategory(item.plateNumber);
+                const cfg = VEHICLE_CONFIG[vType] || VEHICLE_CONFIG['Other'];
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center">
+                        <input type="checkbox" onchange="toggleSelectPlate('${item.id}', this.checked)" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-ajrak-red rounded cursor-pointer">
+                    </td>
+                    <td class="py-2.5 px-4">
+                        ${generateSindhPlateGraphicHTML(item.plateNumber, 'md')}
+                    </td>
+                    <td class="py-3 px-4 text-xs font-bold">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] border ${cfg.color}">
+                            <i class="fa-solid ${cfg.icon} mr-1.5"></i> ${cfg.label}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-semibold text-slate-800 text-xs">${item.ownerName}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="handlePlateClick('${item.id}')" 
+                                class="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-[11px] font-bold transition ${
+                                    isInOffice 
+                                    ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300' 
+                                    : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200 border border-indigo-300'
+                                }">
+                            <i class="fa-solid ${isInOffice ? 'fa-building-circle-check text-emerald-600' : 'fa-lock text-indigo-600'} mr-1"></i>
+                            <span>${isInOffice ? 'In Office Stock' : 'Picked Up (Locked)'}</span>
+                        </button>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="deletePlate('${item.id}')" class="text-slate-400 hover:text-red-600 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateBulkButtonState();
+            populateVehiclePills();
+            populateSeriesPills();
+        }
+
+        function extractSeriesPrefix(plateNumber) {
+            const parts = plateNumber.split('-');
+            if(parts.length >= 2) {
+                return parts[0] + '-' + (parts.length > 2 ? parts[1] + '-' : '');
+            }
+            return 'General';
+        }
+
+        function toggleSelectPlate(id, checked) {
+            if(checked) selectedPlateIds.add(id);
+            else selectedPlateIds.delete(id);
+            updateBulkButtonState();
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const searchVal = document.getElementById('search-input').value.toLowerCase().trim();
+            const visible = platesData.filter(item => {
+                const itemType = item.vehicleType || detectVehicleCategory(item.plateNumber);
+                const matchesStatus = currentStatusFilter === 'ALL' || item.status === currentStatusFilter;
+                const matchesVehicle = currentVehicleFilter === 'ALL' || itemType === currentVehicleFilter;
+                const matchesSeries = currentSeriesFilter === 'ALL' || (item.seriesPrefix && item.seriesPrefix === currentSeriesFilter);
+                const matchesSearch = item.plateNumber.toLowerCase().includes(searchVal) || item.ownerName.toLowerCase().includes(searchVal);
+                return matchesStatus && matchesVehicle && matchesSeries && matchesSearch;
+            });
+
+            visible.forEach(p => {
+                if(masterCheckbox.checked) selectedPlateIds.add(p.id);
+                else selectedPlateIds.delete(p.id);
+            });
+
+            renderInventoryTable();
+        }
+
+        function updateBulkButtonState() {
+            const count = selectedPlateIds.size;
+            document.getElementById('selected-count').innerText = count;
+            document.getElementById('bulk-pickup-btn').disabled = (count === 0);
+        }
+
+        function openBulkHandoverModal() {
+            document.getElementById('bulk-modal-count').innerText = selectedPlateIds.size;
+            document.getElementById('bulk-handover-modal').classList.remove('hidden');
+        }
+        function closeBulkHandoverModal() { document.getElementById('bulk-handover-modal').classList.add('hidden'); }
+
+        function confirmBulkHandover(e) {
+            e.preventDefault();
+            const name = document.getElementById('bulk-recipient-name').value.trim();
+            const cnic = document.getElementById('bulk-recipient-cnic').value.trim();
+            const today = new Date().toLocaleString();
+
+            let updatedCount = 0;
+            selectedPlateIds.forEach(id => {
+                const plate = platesData.find(p => p.id === id);
+                if(plate) {
+                    plate.status = 'PICKED_UP';
+                    plate.handover = { 
+                        recipientName: name, 
+                        recipientCnic: cnic, 
+                        timestamp: today,
+                        verifications: ['File Checked', 'Old Plate Received', 'CNIC Verified']
+                    };
+                    updatedCount++;
+                }
+            });
+
+            selectedPlateIds.clear();
+            saveData(`BULK_HANDOVER: ${updatedCount} Sindh plates collected by ${name} (${cnic})`);
+            closeBulkHandoverModal();
+            showToast(`Updated ${updatedCount} Sindh plates to Picked Up!`, 'success');
+        }
+
+        function populateVehiclePills() {
+            const container = document.getElementById('vehicle-type-pills-container');
+            const counts = {};
+            platesData.forEach(p => {
+                const type = p.vehicleType || detectVehicleCategory(p.plateNumber);
+                counts[type] = (counts[type] || 0) + 1;
+            });
+
+            let html = `<button onclick="setVehicleFilter('ALL')" class="px-2.5 py-1 rounded-md text-[11px] font-bold ${currentVehicleFilter === 'ALL' ? 'bg-ajrak-red text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">All Vehicles</button>`;
+
+            Object.keys(VEHICLE_CONFIG).forEach(cat => {
+                if (counts[cat]) {
+                    const active = currentVehicleFilter === cat;
+                    const cfg = VEHICLE_CONFIG[cat];
+                    html += `<button onclick="setVehicleFilter('${cat}')" class="px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap flex items-center gap-1 ${active ? 'bg-ajrak-red text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                        <span>${cfg.emoji}</span> <span>${cfg.label}</span> <span class="opacity-75">(${counts[cat]})</span>
+                    </button>`;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function populateSeriesPills() {
+            const container = document.getElementById('series-pills-container');
+            const seriesMap = {};
+            platesData.forEach(p => {
+                const prefix = extractSeriesPrefix(p.plateNumber);
+                seriesMap[prefix] = (seriesMap[prefix] || 0) + 1;
+            });
+
+            let html = `<button onclick="setSeriesFilter('ALL')" class="px-2 py-0.5 rounded text-[10px] font-bold ${currentSeriesFilter === 'ALL' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">All Prefixes</button>`;
+
+            Object.keys(seriesMap).forEach(prefix => {
+                const active = currentSeriesFilter === prefix;
+                html += `<button onclick="setSeriesFilter('${prefix}')" class="px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${active ? 'bg-ajrak-red text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${prefix} (${seriesMap[prefix]})</button>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function setVehicleFilter(cat) { currentVehicleFilter = cat; renderInventoryTable(); }
+        function setSeriesFilter(prefix) { currentSeriesFilter = prefix; renderInventoryTable(); }
+
+        function setStatusFilter(filter) {
+            currentStatusFilter = filter;
+            document.querySelectorAll('[id^="filter-btn-"]').forEach(btn => btn.className = 'px-3 py-1 rounded-lg text-slate-600');
+            document.getElementById(`filter-btn-${filter}`).className = 'px-3 py-1 rounded-lg bg-white shadow-xs text-ajrak-red font-bold';
+            renderInventoryTable();
+        }
+
+        function populateSeriesFilters() {
+            const select = document.getElementById('poster-series-filter');
+            select.innerHTML = '<option value="ALL">All Series Prefixes</option>';
+            const prefixes = new Set();
+            platesData.forEach(p => prefixes.add(extractSeriesPrefix(p.plateNumber)));
+            prefixes.forEach(prefix => {
+                select.innerHTML += `<option value="${prefix}">${prefix}</option>`;
+            });
+        }
+
+        function renderPosterPreview() {
+            const mode = document.getElementById('poster-mode-select').value;
+            const statusFilter = document.getElementById('poster-status-filter').value;
+            const seriesFilter = document.getElementById('poster-series-filter').value;
+            const vehicleScope = document.getElementById('poster-vehicle-scope').value;
+            const contentArea = document.getElementById('poster-render-content');
+
+            let list = platesData.filter(p => {
+                const itemType = p.vehicleType || detectVehicleCategory(p.plateNumber);
+                const matchStatus = statusFilter === 'ALL' || p.status === statusFilter;
+                const matchSeries = seriesFilter === 'ALL' || extractSeriesPrefix(p.plateNumber) === seriesFilter;
+                const matchVehicle = vehicleScope === 'ALL' || itemType === vehicleScope;
+                return matchStatus && matchSeries && matchVehicle;
+            });
+
+            document.getElementById('poster-count-badge').innerText = `Total: ${list.length} Plates`;
+
+            if(list.length === 0) {
+                contentArea.innerHTML = `<div class="text-center py-12 text-slate-400 font-bold text-xs">No plates match selected criteria.</div>`;
+                return;
+            }
+
+            if(mode === 'CATEGORIZED_RANGES') {
+                renderCategorizedRangesMode(list, contentArea);
+            } else {
+                renderCompactMatrixMode(list, contentArea);
+            }
+        }
+
+        function renderCategorizedRangesMode(list, container) {
+            const vehicleGroups = {};
+            list.forEach(p => {
+                const type = p.vehicleType || detectVehicleCategory(p.plateNumber);
+                if(!vehicleGroups[type]) vehicleGroups[type] = [];
+                vehicleGroups[type].push(p);
+            });
+
+            let html = `<div class="space-y-5">`;
+
+            Object.keys(vehicleGroups).forEach(vType => {
+                const vPlates = vehicleGroups[vType];
+                const cfg = VEHICLE_CONFIG[vType] || VEHICLE_CONFIG['Other'];
+
+                const seriesMap = {};
+                vPlates.forEach(p => {
+                    const prefix = extractSeriesPrefix(p.plateNumber);
+                    if(!seriesMap[prefix]) seriesMap[prefix] = [];
+                    const match = p.plateNumber.match(/\d+$/);
+                    if(match) seriesMap[prefix].push(parseInt(match[0], 10));
+                });
+
+                html += `
+                    <div class="border-2 border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                        <div class="ajrak-bg text-white px-4 py-2.5 flex justify-between items-center border-b border-ajrak-gold">
+                            <span class="font-extrabold text-xs uppercase tracking-wider flex items-center gap-2">
+                                <span class="text-base">${cfg.emoji}</span> ${cfg.label.toUpperCase()} SECTION
+                            </span>
+                            <span class="bg-ajrak-gold text-slate-950 font-mono text-[10px] px-2.5 py-0.5 rounded font-black">${vPlates.length} Plates</span>
+                        </div>
+                        <div class="p-3 space-y-3 bg-slate-50">
+                `;
+
+                Object.keys(seriesMap).forEach(prefix => {
+                    const nums = seriesMap[prefix].sort((a,b) => a - b);
+                    const ranges = calculateRanges(nums);
+
+                    html += `
+                        <div class="bg-white border border-slate-200 p-2.5 rounded-lg">
+                            <div class="font-mono-plate font-black text-xs text-slate-800 mb-2 border-b border-slate-100 pb-1">
+                                SINDH SERIES: <span class="text-ajrak-red">${prefix}</span> (${nums.length} items)
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    `;
+
+                    ranges.forEach(r => {
+                        const rangeText = r.start === r.end ? `${prefix}${r.start}` : `${prefix}${r.start} ➔ ${prefix}${r.end}`;
+                        html += `
+                            <div class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded text-[11px] font-extrabold text-slate-800 flex items-center justify-between">
+                                <span class="font-mono-plate text-slate-900">${rangeText}</span>
+                                <span class="text-emerald-700 text-[9px] uppercase font-bold bg-emerald-100 px-1.5 py-0.5 rounded">Ready</span>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                });
+
+                html += `</div></div>`;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function calculateRanges(numbers) {
+            if(numbers.length === 0) return [];
+            const ranges = [];
+            let start = numbers[0], end = numbers[0];
+            for(let i = 1; i < numbers.length; i++) {
+                if(numbers[i] === end + 1) end = numbers[i];
+                else { ranges.push({ start, end }); start = numbers[i]; end = numbers[i]; }
+            }
+            ranges.push({ start, end });
+            return ranges;
+        }
+
+        function renderCompactMatrixMode(list, container) {
+            let html = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">`;
+            list.forEach(p => {
+                html += `
+                    <div class="flex justify-center">
+                        ${generateSindhPlateGraphicHTML(p.plateNumber, 'sm')}
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function updatePosterText() {
+            document.getElementById('poster-dept-display').innerText = document.getElementById('poster-dept-input').value;
+            document.getElementById('poster-title-display').innerText = document.getElementById('poster-title-input').value;
+        }
+
+        function downloadPosterPNG() {
+            const card = document.getElementById('poster-card');
+            showToast("Rendering High-Res Sindh Notice Poster...", "info");
+            html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Sindh_Plate_Notice_${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                showToast("Notice poster downloaded successfully!", "success");
+            });
+        }
+
+        function copyWhatsAppMessage() {
+            const inOffice = platesData.filter(p => p.status === 'IN_OFFICE');
+            if(inOffice.length === 0) { showToast("No plates available in office!", "warning"); return; }
+
+            let msg = `🏛️ *GOVERNMENT OF SINDH - EXCISE & TAXATION DEPARTMENT*\n`;
+            msg += `📢 *PUBLIC ANNOUNCEMENT: SINDH AJRAK NUMBER PLATES READY*\n`;
+            msg += `📅 Date: ${document.getElementById('poster-date-display').innerText}\n\n`;
+
+            const catMap = {};
+            inOffice.forEach(p => {
+                const type = p.vehicleType || detectVehicleCategory(p.plateNumber);
+                catMap[type] = (catMap[type] || 0) + 1;
+            });
+
+            Object.keys(catMap).forEach(cat => {
+                const cfg = VEHICLE_CONFIG[cat] || VEHICLE_CONFIG['Other'];
+                msg += `${cfg.emoji} *${cfg.label.toUpperCase()}*: ${catMap[cat]} plates ready\n`;
+            });
+
+            msg += `\n📌 *Mandatory Documents for Handover:* Original CNIC, Registration Book & Old Physical Plate.`;
+            if(navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(msg).then(() => showToast("Copied WhatsApp Broadcast Text!", "success"));
+            }
+        }
+
+        // Single Entry & CSV Management
+        function openAddModal() { document.getElementById('add-modal').classList.remove('hidden'); }
+        function closeAddModal() { document.getElementById('add-modal').classList.add('hidden'); }
+        function openImportModal() { document.getElementById('import-modal').classList.remove('hidden'); }
+        function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
+
+        function saveSinglePlate(e) {
+            e.preventDefault();
+            const num = document.getElementById('add-plate-number').value.trim().toUpperCase();
+            const owner = document.getElementById('add-owner-name').value.trim();
+            if(!num || !owner) return;
+
+            const vType = document.getElementById('add-vehicle-type').value;
+
+            platesData.unshift({
+                id: Date.now().toString(),
+                plateNumber: num,
+                seriesPrefix: extractSeriesPrefix(num),
+                ownerName: owner,
+                vehicleType: vType,
+                phone: document.getElementById('add-owner-phone').value.trim(),
+                arrivalDate: new Date().toISOString().split('T')[0],
+                status: 'IN_OFFICE',
+                handover: null
+            });
+
+            saveData(`ADD_SINDH_PLATE: [${vType}] Plate ${num} for ${owner}`);
+            closeAddModal();
+            showToast(`Added Sindh plate ${num}!`, 'success');
+        }
+
+        function deletePlate(id) {
+            const plate = platesData.find(p => p.id === id);
+            if(plate && confirm(`Delete Sindh registration plate ${plate.plateNumber}?`)) {
+                platesData = platesData.filter(p => p.id !== id);
+                selectedPlateIds.delete(id);
+                saveData(`DELETE_RECORD: Removed plate ${plate.plateNumber}`);
+                showToast("Record deleted", "warning");
+            }
+        }
+
+        function handleCSVFileSelect(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) { parseCSV(evt.target.result); };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r\n|\n/);
+            let count = 0;
+            const today = new Date().toISOString().split('T')[0];
+
+            for(let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if(!line) continue;
+                const cols = line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+                if(cols.length >= 2) {
+                    const num = cols[0].toUpperCase();
+                    const owner = cols[1];
+                    if(num && owner) {
+                        const rawType = cols[2] || detectVehicleCategory(num);
+                        platesData.unshift({
+                            id: 'csv_' + Date.now() + '_' + i,
+                            plateNumber: num,
+                            seriesPrefix: extractSeriesPrefix(num),
+                            ownerName: owner,
+                            vehicleType: rawType,
+                            phone: cols[3] || '',
+                            arrivalDate: cols[4] || today,
+                            status: 'IN_OFFICE',
+                            handover: null
+                        });
+                        count++;
+                    }
+                }
+            }
+
+            saveData(`CSV_IMPORT: Imported ${count} Sindh records`);
+            closeImportModal();
+            showToast(`Imported ${count} Sindh records from CSV!`, 'success');
+        }
+
+        function exportCSVBackup() {
+            if(platesData.length === 0) return;
+            let csv = "data:text/csv;charset=utf-8,Plate Number,Owner Name,Vehicle Category,Phone,Arrival Date,Status,Recipient Name,Recipient CNIC,Chassis Receipt No\n";
+            platesData.forEach(p => {
+                const rName = p.handover ? p.handover.recipientName : '';
+                const rCnic = p.handover ? p.handover.recipientCnic : '';
+                const chNo = p.handover ? (p.handover.chassisNo || '') : '';
+                const vType = p.vehicleType || detectVehicleCategory(p.plateNumber);
+                csv += `"${p.plateNumber}","${p.ownerName}","${vType}","${p.phone || ''}","${p.arrivalDate}","${p.status}","${rName}","${rCnic}","${chNo}"\n`;
+            });
+            const link = document.createElement("a");
+            link.href = encodeURI(csv);
+            link.download = `sindh_plates_backup_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            showToast("Sindh CSV backup downloaded!", "success");
+        }
+
+        function downloadCSVTemplate() {
+            let csv = "data:text/csv;charset=utf-8,Plate Number,Owner Name,Vehicle Category,Phone,Arrival Date\nBWU-503,Shahzaib Soomro,Car,0300-1112233,2026-10-09\nKHI-M-24-1001,Muhammad Ali,Motorbike,0312-3334455,2026-10-09\nRKP-24-105,Tariq Ahmed,Rickshaw,0333-5556677,2026-10-09\n";
+            const link = document.createElement("a");
+            link.href = encodeURI(csv);
+            link.download = "sindh_plates_template.csv";
+            link.click();
+        }
+
+        function updateStats() {
+            const total = platesData.length;
+            const inOffice = platesData.filter(d => d.status === 'IN_OFFICE');
+            const pickedUp = platesData.filter(d => d.status === 'PICKED_UP').length;
+
+            const bikesReady = inOffice.filter(p => (p.vehicleType || detectVehicleCategory(p.plateNumber)) === 'Motorbike').length;
+            const threeWheelersReady = inOffice.filter(p => {
+                const t = p.vehicleType || detectVehicleCategory(p.plateNumber);
+                return t === 'Rickshaw' || t === 'Loader';
+            }).length;
+            const carsReady = inOffice.filter(p => (p.vehicleType || detectVehicleCategory(p.plateNumber)) === 'Car').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-in-office').innerText = inOffice.length;
+            document.getElementById('stat-picked-up').innerText = pickedUp;
+            document.getElementById('stat-bikes-ready').innerText = bikesReady;
+            document.getElementById('stat-three-wheelers-ready').innerText = threeWheelersReady;
+            document.getElementById('stat-cars-ready').innerText = carsReady;
+        }
+
+        function initCharts() {
+            const ctx1 = document.getElementById('statusChart').getContext('2d');
+            statusChartInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: { labels: ['In Office', 'Picked Up'], datasets: [{ data: [0,0], backgroundColor: ['#059669', '#4f46e5'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctx2 = document.getElementById('vehicleChart').getContext('2d');
+            vehicleChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: { 
+                    labels: ['Motorbike', 'Rickshaw', 'Loader', 'Car', 'Commercial', 'Tractor'], 
+                    datasets: [{ label: 'Stock Count', data: [0,0,0,0,0,0], backgroundColor: ['#d97706', '#9333ea', '#ea580c', '#2563eb', '#475569', '#059669'] }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            updateCharts();
+        }
+
+        function updateCharts() {
+            if(!statusChartInstance || !vehicleChartInstance) return;
+            const inOffice = platesData.filter(d => d.status === 'IN_OFFICE').length;
+            const pickedUp = platesData.filter(d => d.status === 'PICKED_UP').length;
+            statusChartInstance.data.datasets[0].data = [inOffice, pickedUp];
+            statusChartInstance.update();
+
+            const cats = ['Motorbike', 'Rickshaw', 'Loader', 'Car', 'Commercial', 'Tractor'];
+            const counts = cats.map(c => platesData.filter(d => (d.vehicleType || detectVehicleCategory(d.plateNumber)) === c).length);
+            vehicleChartInstance.data.datasets[0].data = counts;
+            vehicleChartInstance.update();
+        }
+
+        function renderAnalyticsLog() {
+            const tbody = document.getElementById('analytics-log-body');
+            tbody.innerHTML = '';
+            const handovers = platesData.filter(p => p.status === 'PICKED_UP' && p.handover);
+
+            if(handovers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400">No handover records logged yet.</td></tr>';
+                return;
+            }
+
+            handovers.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-100 hover:bg-slate-50';
+                const vType = item.vehicleType || detectVehicleCategory(item.plateNumber);
+                const cfg = VEHICLE_CONFIG[vType] || VEHICLE_CONFIG['Other'];
+
+                tr.innerHTML = `
+                    <td class="p-2">${generateSindhPlateGraphicHTML(item.plateNumber, 'sm')}</td>
+                    <td class="p-3 font-bold text-slate-700">${cfg.emoji} ${cfg.label}</td>
+                    <td class="p-3 text-slate-700 font-medium">${item.ownerName}</td>
+                    <td class="p-3 text-slate-900 font-bold">${item.handover.recipientName}</td>
+                    <td class="p-3 font-mono font-bold text-slate-800">${item.handover.recipientCnic}</td>
+                    <td class="p-3 text-slate-600 font-mono text-[11px]">${item.handover.chassisNo || 'N/A'}</td>
+                    <td class="p-3 text-emerald-700 font-bold"><i class="fa-solid fa-square-check text-emerald-600 mr-1"></i> Checked</td>
+                    <td class="p-3 text-slate-500 text-[11px]">${item.handover.timestamp}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function switchTab(tabName) {
+            document.getElementById('tab-inventory').classList.add('hidden');
+            document.getElementById('tab-poster').classList.add('hidden');
+            document.getElementById('tab-analytics').classList.add('hidden');
+
+            document.getElementById('tab-btn-inventory').classList.remove('tab-active');
+            document.getElementById('tab-btn-poster').classList.remove('tab-active');
+            document.getElementById('tab-btn-analytics').classList.remove('tab-active');
+
+            if(tabName === 'inventory') {
+                document.getElementById('tab-inventory').classList.remove('hidden');
+                document.getElementById('tab-btn-inventory').classList.add('tab-active');
+            } else if(tabName === 'poster') {
+                document.getElementById('tab-poster').classList.remove('hidden');
+                document.getElementById('tab-btn-poster').classList.add('tab-active');
+                populateSeriesFilters();
+                renderPosterPreview();
+            } else if(tabName === 'analytics') {
+                document.getElementById('tab-analytics').classList.remove('hidden');
+                document.getElementById('tab-btn-analytics').classList.add('tab-active');
+                renderAnalyticsLog();
+                updateCharts();
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let bg = 'bg-slate-900 text-white';
+            if(type === 'success') bg = 'bg-emerald-800 text-white border border-emerald-500';
+            if(type === 'warning') bg = 'bg-amber-800 text-white border border-amber-500';
+
+            toast.className = `p-3 px-4 rounded-xl shadow-2xl text-xs font-bold transition duration-300 ${bg}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
